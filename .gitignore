@@ -1,0 +1,12 @@
+.vscode/
+__pycache__/
+logs/
+.pytest_cache/
+logs/
+botenv/
+utils/
+*.db
+readme.*
+*.png
+*.deb
+anketa/unswers.py
