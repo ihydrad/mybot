@@ -120,10 +120,13 @@ class Profile:
     def fill(self):
         self.open()
         self.fill_page1()
+        print("fill_page1 is ok")
         self.__submit_page()
         self.fill_page2()
+        print("fill_page2 is ok")
         self.__submit_page()
         self.fill_page3()
+        print("fill_page3 is ok")
 
 
 
