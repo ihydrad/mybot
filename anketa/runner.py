@@ -1,6 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from profile import Profile
+from anketa.job_profile import Profile
 from platform import platform
 
 
@@ -32,7 +32,7 @@ def send_my_profile_for(job_name):
     profile = Profile(job_name, driver())
     profile.fill()
     profile.send()
-    # return profile.driver.find_element(By.CLASS_NAME, "title").text
+    return profile.result()
 
 
 if __name__ == "__main__":

@@ -11,7 +11,6 @@ import requests
 import threading
 from time import sleep
 import schedule
-import os
 
 
 bot = telebot.TeleBot(config.token)
@@ -71,11 +70,12 @@ def handle_help(message):
 
 def fill_profile(name):
     try:
-        os.remove("result.png")
-    except FileNotFoundError:
-        pass
-    try:
-        send_my_profile_for(name)
+        msg = f"Заполняем анкету: {name}"
+        shedule_log.logger.debug(msg)
+        bot.send_message(config.users[0], msg)
+        res = send_my_profile_for(name)
+        shedule_log.logger.debug(res)
+        bot.send_message(config.users[0], res)
     except Exception as e:
         shedule_log.logger.debug(e)
 

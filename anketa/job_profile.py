@@ -1,7 +1,7 @@
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.ui import Select
-import unswers
+import anketa.unswers as unswers
 from time import sleep
 
 
@@ -31,8 +31,8 @@ class Profile:
                                     "arguments[0].value = arguments[1]",
                                     self.driver.find_element(type_elem, elem),
                                     val
-                                   )    
-    
+                                   )
+
     def __sel_drop_menu(self, type_elem, elem, val):
         select_type = Select(self.driver.find_element(type_elem, elem))
         select_type.select_by_visible_text(val)
@@ -80,7 +80,7 @@ class Profile:
         self.driver.find_element(By.NAME, "salary_min").send_keys(unswers.salary_min)
         self.driver.find_element(By.NAME, "salary_opt").send_keys(unswers.salary_opt)
         self.driver.find_element(By.NAME, "skills").send_keys(unswers.skills)
-        
+
     def fill_page3(self):
         self.driver.find_element(By.NAME, "wishes").send_keys(unswers.wishes)
         self.__set_check_box_menu("ms", "0")
@@ -91,7 +91,7 @@ class Profile:
         for i in range(5):
             self.driver.find_element(By.NAME, f"test_sentence-{i}-ball").send_keys(unswers.s[i])
         self.driver.find_element(By.ID, "i687").click()
-     
+
     def __set_check_box_menu(self, name, val):
         all = self.driver.find_elements(By.NAME, name)
         for item in all:
@@ -104,7 +104,7 @@ class Profile:
             for item in res:
                 val = item.get_attribute("value")
                 val = False if val == "False" else True
-                if  val == give:
+                if val == give:
                     item.click()
                     if not give:
                         self.driver.find_element(By.NAME, "dis_rec_reas").send_keys(reason)
@@ -128,6 +128,9 @@ class Profile:
         self.fill_page3()
         print("fill_page3 is ok")
 
-
-
+    def result(self):
+        try:
+            return self.driver.find_element(By.CLASS_NAME, "title").text
+        except:
+            return "Не удалось получить результат"
 
