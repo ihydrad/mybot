@@ -3,7 +3,7 @@ from telebot import types
 from wakeonlan import send_magic_packet
 from jobParser import JobParser, JobParserDB
 from customlog import LoggerFile
-from anketa.profile import send_my_profile_for
+from anketa.runner import send_my_profile_for
 
 import telebot
 import config
@@ -12,7 +12,6 @@ import threading
 from time import sleep
 import schedule
 import os
-
 
 
 bot = telebot.TeleBot(config.token)
