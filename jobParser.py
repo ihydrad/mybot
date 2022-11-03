@@ -13,15 +13,17 @@ import re
 class JobParserDB():
     def __init__(self, table_name, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
+
         self.table = table_name
         db_path = os.path.join(config.work_dir, "jobs.db")
         self.db = sqlite3.connect(db_path)
-        if not self.table_exist:
-            self.create_table()
+
+        if not self._table_exist:
+            self._create_table()
         self.db = sqlite3.connect(db_path)
 
     @property
-    def table_exist(self):
+    def _table_exist(self):
         table_exist_query = f"""
             SELECT name FROM sqlite_master WHERE type='table' AND name='{self.table}';
         """
@@ -31,7 +33,7 @@ class JobParserDB():
         cursor.close()
         return res
 
-    def create_table(self):
+    def _create_table(self):
         table_create_query = f"""
         CREATE TABLE {self.table} (
                             id INTEGER PRIMARY KEY,
@@ -46,7 +48,8 @@ class JobParserDB():
         cursor.close()
 
     # TODO переделать
-    def calc_salary(self, salary, level):
+    @staticmethod
+    def _calc_salary(salary, level):
         try:
             low, max = salary.replace(' ', '').strip('руб.').split('-')
         except ValueError:
@@ -60,99 +63,106 @@ class JobParserDB():
         elif level == "max":
             return int(max)
 
-    def is_exist_job(self, table, job):
+    def _is_exist_job(self, table, job):
         find_job_query = f'SELECT close_date FROM {table} WHERE name == "{job}";'
+
         cursor = self.db.cursor()
         cursor.execute(find_job_query)
         res = cursor.fetchall()
         cursor.close()
-        if config.DEBUG:
-            print(res)
+
         if not res:
             return False
-        else:
-            last_closed = res[-1][0]
-            if last_closed is None:
-                return True
-            else:
-                delay = int(time()) - last_closed
-                if config.DEBUG:
-                    print(delay)
-                if delay > config.job_add_threshold:
-                    return False
-                else:
-                    return True
 
-    def db_fetchall(self, query):
+        last_closed = res[-1][0]
+
+        if last_closed is None:
+            return True
+
+        threshold_time = int(time()) - last_closed
+
+        if threshold_time > config.job_add_threshold:
+            return False
+
+        return True
+
+    def _db_fetchall(self, query):
         cursor = self.db.cursor()
         cursor.execute(query)
         res = cursor.fetchall()
         cursor.close()
+
         return res
 
-    def db_fetch(self, query):
+    def _db_fetch(self, query):
         cursor = self.db.cursor()
         cursor.execute(query)
         res = cursor.fetchone()
         cursor.close()
+
         return res
 
-    def db_get_all_active_job(self):
-        query = f"SELECT id, name FROM {self.table} WHERE close_date IS NULL;"
-        return self.db_fetchall(query)
-
-    def db_get_name_by_id(self, id):
-        query = f"SELECT name FROM {self.table} WHERE id=={id};"
-        return self.db_fetch(query)
-
-    def db_get_salary_by_id(self, id):
-        query = f"SELECT salary_low, salary_max FROM {self.table} WHERE id=={id};"
-        return self.db_fetch(query)
-
-    def db_open_jobs(self, new_jobs: list, parsed_data: dict):
+    def _db_create_jobs(self, new_jobs: list, parsed_data: dict):
         base_query = """
             INSERT INTO {table} (name, salary_low, salary_max, create_date, close_date)
             VALUES ("{name}", {salary_low}, {salary_max}, {create_date}, {close_date});
         """
+
         cursor = self.db.cursor()
+
         for job in new_jobs:
-            if self.is_exist_job(self.table, job) is False:
-                query = base_query.format(
-                                    table=self.table,
-                                    name=job,
-                                    salary_low=self.calc_salary(parsed_data[job], "low"),
-                                    salary_max=self.calc_salary(parsed_data[job], "max"),
+            if self._is_exist_job(self.table, job) is False:
+
+                query = base_query.format(table=self.table, name=job,
+                                    salary_low=self._calc_salary(parsed_data[job], "low"),
+                                    salary_max=self._calc_salary(parsed_data[job], "max"),
                                     create_date=int(time()),
                                     close_date="null"
-                                    )
-                if config.DEBUG:
-                    print(query)
+                                        )
+
                 cursor.execute(query)
+
             self.db.commit()
             cursor.close()
 
-    def db_close_jobs(self, removed_jobs: set):
+    def _db_close_jobs(self, removed_jobs: set):
         base_query = """
             UPDATE {table}
             SET close_date = {close_date}
             WHERE name == "{name}" AND close_date IS NULL;
         """
+        cursor = self.db.cursor()
+
         for job in removed_jobs:
-            query = base_query.format(
-                                table=self.table,
-                                name=job,
+            query = base_query.format(table=self.table, name=job,
                                 close_date=int(time())
                                 )
-            cursor = self.db.cursor()
+
             cursor.execute(query)
             self.db.commit()
             cursor.close()
 
-    def db_update(self, myjobs, parsed_data):
-        self.db_open_jobs(myjobs['added'], parsed_data)
-        self.db_close_jobs(myjobs['removed'])
+    def db_get_all_active_job(self):
+        query = f"SELECT id, name, create_date FROM {self.table} WHERE close_date IS NULL;"
+        return self._db_fetchall(query)
 
-    def close_db(self):
+    def db_get_all_closed_job(self):
+        query = f"SELECT id, name, create_date, close_date FROM {self.table} WHERE close_date IS NOT NULL;"
+        return self._db_fetchall(query)
+
+    def db_get_name_by_id(self, id):
+        query = f"SELECT name FROM {self.table} WHERE id=={id};"
+        return self._db_fetch(query)
+
+    def db_get_salary_by_id(self, id):
+        query = f"SELECT salary_low, salary_max FROM {self.table} WHERE id=={id};"
+        return self._db_fetch(query)
+
+    def db_update(self, myjobs, parsed_data):
+        self._db_create_jobs(myjobs['added'], parsed_data)
+        self._db_close_jobs(myjobs['removed'])
+
+    def _close_db(self):
         self.db.close()
 
 
@@ -236,7 +246,7 @@ class JobParser(JobParserDB, customlog.LoggerFile):
         return txt + '\n' + '-'*45
 
     def get_fmt_jobs(self) -> str:
-        for id, name in self.db_get_all_active_job():
+        for id, name, _ in self.db_get_all_active_job():
             salary = self.db_get_salary_by_id(id)
             yield id, self.fmt(name=name, state=None, salary=salary)
 
