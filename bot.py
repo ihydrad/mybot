@@ -1,4 +1,4 @@
-#!/media/private/telegramBot/botenv/bin/python3
+#!/home/adr/miniconda3/envs/botenv/bin/python
 import config
 import requests
 import schedule
