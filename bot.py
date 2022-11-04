@@ -1,16 +1,17 @@
 #!/media/private/telegramBot/botenv/bin/python3
-from telebot import types
-from wakeonlan import send_magic_packet
-from jobParser import JobParser, JobParserDB
-from customlog import LoggerFile
-from anketa.runner import send_my_profile_for
-
-import telebot
 import config
 import requests
+import schedule
+import telebot
 import threading
 from time import sleep
-import schedule
+
+from anketa.runner import send_my_profile_for
+from customlog import LoggerFile
+from telebot import types
+from jobParser import JobParser, JobParserDB
+from wakeonlan import send_magic_packet
+from graph import build_hist_year
 
 
 bot = telebot.TeleBot(config.token)
@@ -57,6 +58,10 @@ def botfunc(message) -> str:
             staet_msg = "PC is offline"
     
         return bot.send_message(config.users[0], staet_msg)
+    
+    if message.text.lower() == 'jobs':
+        graph = build_hist_year()
+        bot.send_photo(config.users[0], graph)
 
     url = f"http://{config.host}:8585/?cmd={message.text.lower()}"
 

@@ -4,8 +4,6 @@ import io
 from jobParser import JobParserDB
 import matplotlib.pyplot as plt
 
-db = JobParserDB("ufa")
-data = db.db_get_all_job()
 
 def job_to_str(data):
     txt = "Name,Start,End\n"
@@ -19,14 +17,31 @@ def job_to_str(data):
     
     return txt
 
-data = job_to_str(data)
+def build_hist_year():
+    db = JobParserDB("ufa")
 
-io_file = io.StringIO(data)
-df = pd.read_csv(io_file)
-df['Start'] = df['Start'].astype('datetime64[s]')
-df.sort_values(by="Start", inplace=True)
+    data = db.db_get_all_job()
+    data = job_to_str(data)
 
-plt.hist(df['Start'].dt.month, range=[1, 13])
-plt.savefig('hist.png')
+    io_str_file = io.StringIO(data)
+
+    df = pd.read_csv(io_str_file)
+    df['Start'] = df['Start'].astype('datetime64[s]')
+    df.sort_values(by="Start", inplace=True)
+
+    plt.hist(df['Start'].dt.month, range=[1, 13])
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+
+    return buf
+
+if __name__ == "__main__":
+    img = build_hist_year()
+
+    with open("test.png", "wb") as f:
+        f.write(img.getbuffer())
+    
 
 
