@@ -1,11 +1,10 @@
-
 import pandas as pd
 import io
 
 from jobParser import JobParserDB
+import matplotlib.pyplot as plt
 
 db = JobParserDB("ufa")
-
 data = db.db_get_all_job()
 
 def job_to_str(data):
@@ -21,12 +20,13 @@ def job_to_str(data):
     return txt
 
 data = job_to_str(data)
-print(data)
 
 io_file = io.StringIO(data)
 df = pd.read_csv(io_file)
-#df['Start'] = df['Start'].astype('datetime64[s]')
-
-df['Start'] = pd.to_datetime(df['Start'], unit='s', origin='unix')
+df['Start'] = df['Start'].astype('datetime64[s]')
 df.sort_values(by="Start", inplace=True)
-print(df[["Name", "Start"]])
+
+plt.hist(df['Start'].dt.month, range=[1, 13])
+plt.savefig('hist.png')
+
+
