@@ -56,12 +56,12 @@ def botfunc(message) -> str:
             staet_msg = "PC is online!"
         except:
             staet_msg = "PC is offline"
-    
+
         return bot.send_message(config.users[0], staet_msg)
-    
+
     if message.text.lower() == 'jobs':
         graph = build_hist_year()
-        bot.send_photo(config.users[0], graph)
+        return bot.send_photo(config.users[0], graph)
 
     url = f"http://{config.host}:8585/?cmd={message.text.lower()}"
 
@@ -70,7 +70,7 @@ def botfunc(message) -> str:
         resp_msg = f'{message.text.lower()} - OK!\n Response {resp_text}'
     except Exception as e:
         resp_msg = str(e)
-    
+
     return bot.send_message(config.users[0], resp_msg)
 
 
@@ -88,7 +88,7 @@ def fill_profile(job_name):
         res_msg = send_my_profile_for(job_name)
     except Exception as e:
         res_msg = str(e)
-    
+
     shedule_log.logger.debug(res_msg)
     bot.send_message(config.users[0], res_msg)
 
@@ -103,7 +103,7 @@ def callback_query(call):
 
     bot.answer_callback_query(call.id,
             f'Отправляем анкету:"{job_name}"')
-    
+
     t_profile = threading.Thread(target=fill_profile, args=(job_name,))
     t_profile.start()
 
