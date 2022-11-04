@@ -150,6 +150,10 @@ class JobParserDB():
         query = f"SELECT id, name, create_date, close_date FROM {self.table} WHERE close_date IS NOT NULL;"
         return self._db_fetchall(query)
 
+    def db_get_all_job(self):
+        query = f"SELECT id, name, create_date, close_date FROM {self.table};"
+        return self._db_fetchall(query)
+
     def db_get_name_by_id(self, id):
         query = f"SELECT name FROM {self.table} WHERE id=={id};"
         return self._db_fetch(query)

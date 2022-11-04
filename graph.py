@@ -6,8 +6,7 @@ from jobParser import JobParserDB
 
 db = JobParserDB("ufa")
 
-data_closed = db.db_get_all_closed_job()
-data_opened = db.db_get_all_active_job()
+data = db.db_get_all_job()
 
 def job_to_str(data):
     txt = "Name,Start,End\n"
@@ -21,8 +20,7 @@ def job_to_str(data):
     
     return txt
 
-data_closed.extend(data_opened)
-data = job_to_str(data_closed)
+data = job_to_str(data)
 print(data)
 
 io_file = io.StringIO(data)
