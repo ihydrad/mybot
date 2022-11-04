@@ -1,4 +1,4 @@
-#!/home/adr/miniconda3/envs/botenv/bin/python
+#!/home/adr/miniconda3/envs/botenv/bin/python3.10
 import config
 import requests
 import schedule
