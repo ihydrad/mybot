@@ -128,7 +128,7 @@ def send_fmt(obj: JobParser):
     bot.send_message(config.users[0], f"{msg}\n", reply_markup=markup, parse_mode="HTML")
 
 
-def informer(parsers: list):
+def updater(parsers: list):
     for parser in parsers:
         parser: JobParser
         if parser.update(filter=config.keysIT):
@@ -142,7 +142,7 @@ def shedule_ping():
 def botScheduler():
     parsers = [JobParser(city) for city in ["ufa", "Sterlitamak"]]
 
-    schedule.every(config.period).minutes.do(informer, parsers)
+    schedule.every(config.period).minutes.do(updater, parsers)
     schedule.every(config.period).minutes.do(shedule_ping)
 
     while True:
