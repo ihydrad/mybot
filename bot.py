@@ -129,7 +129,6 @@ def send_fmt(obj: JobParser):
 
 
 def informer(obj_list):
-
     for obj in obj_list:
         if obj.update(filter=config.keysIT):
             send_fmt(obj)
@@ -140,10 +139,9 @@ def shedule_ping():
 
 
 def botScheduler():
+    parsers = [JobParser(city) for city in ["ufa", "Sterlitamak"]]
 
-    target_list = (JobParser("sterlitamak"), JobParser("ufa"))
-
-    schedule.every(config.period).minutes.do(informer, target_list)
+    schedule.every(config.period).minutes.do(informer, parsers)
     schedule.every(config.period).minutes.do(shedule_ping)
 
     while True:
