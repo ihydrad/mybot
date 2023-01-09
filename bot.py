@@ -102,37 +102,36 @@ def callback_query(call):
     job_name = db.db_get_name_by_id(id)[0]
 
     bot.answer_callback_query(call.id,
-            f'Отправляем анкету:"{job_name}"')
+                              f'Отправляем анкету:"{job_name}"')
 
     t_profile = threading.Thread(target=fill_profile, args=(job_name,))
     t_profile.start()
 
 
-def send_fmt(obj: JobParser):
-
-    markup = types.InlineKeyboardMarkup()
-    msg = f"{obj}. Заполнить анкету на вакансию:\n"
-    cnt = 0
-    button_list = list()
-
-    for id, fmt_job in obj.get_fmt_jobs():
-        cnt += 1
-        msg += f"{cnt}. {fmt_job}\n"
-        button = types.InlineKeyboardButton(
-                            str(cnt),
-                            callback_data=f"{obj.city}:{id}"
-                            )
-        button_list.append(button)
-
-    markup.row(*button_list)
-    bot.send_message(config.users[0], f"{msg}\n", reply_markup=markup, parse_mode="HTML")
-
-
 def updater(parsers: list):
     for parser in parsers:
         parser: JobParser
+
         if parser.update(filter=config.keysIT):
-            send_fmt(parser)
+            markup = types.InlineKeyboardMarkup()
+            msg = f"{parser}. Заполнить анкету на вакансию:\n"
+            cnt = 0
+            button_list = list()
+
+            for id, fmt_job in parser.get_fmt_jobs():
+                cnt += 1
+                msg += f"{cnt}. {fmt_job}\n"
+                button = types.InlineKeyboardButton(
+                                                    str(cnt),
+                                                    callback_data=f"{parser.city}:{id}"
+                                                    )
+                button_list.append(button)
+
+            markup.row(*button_list)
+            bot.send_message(config.users[0],
+                             f"{msg}\n",
+                             reply_markup=markup,
+                             parse_mode="HTML")
 
 
 def shedule_ping():
