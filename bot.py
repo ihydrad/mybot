@@ -128,10 +128,11 @@ def send_fmt(obj: JobParser):
     bot.send_message(config.users[0], f"{msg}\n", reply_markup=markup, parse_mode="HTML")
 
 
-def informer(obj_list):
-    for obj in obj_list:
-        if obj.update(filter=config.keysIT):
-            send_fmt(obj)
+def informer(parsers: list):
+    for parser in parsers:
+        parser: JobParser
+        if parser.update(filter=config.keysIT):
+            send_fmt(parser)
 
 
 def shedule_ping():
