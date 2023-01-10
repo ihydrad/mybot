@@ -1,20 +1,19 @@
+import config
+import customlog
+import os
+import re
+import requests
+import sqlite3
 
 from time import time
 from bs4 import BeautifulSoup as bs
 
-import customlog
-import sqlite3
-import requests
-import os
-import config
-import re
-
 
 class JobParserDB():
-    def __init__(self, table_name, *args, **kwargs) -> None:
+    def __init__(self, table_name: str, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
-        self.table = table_name
+        self.table = table_name.lower()
         db_path = os.path.join(config.work_dir, "jobs.db")
         self.db = sqlite3.connect(db_path)
 
@@ -24,13 +23,12 @@ class JobParserDB():
 
     @property
     def _table_exist(self):
-        table_exist_query = f"""
-            SELECT name FROM sqlite_master WHERE type='table' AND name='{self.table}';
-        """
+        query = f"SELECT name FROM sqlite_master WHERE type='table' AND name='{self.table}';"
         cursor = self.db.cursor()
-        cursor.execute(table_exist_query)
+        cursor.execute(query)
         res = cursor.fetchone()
         cursor.close()
+
         return res
 
     def _create_table(self):
@@ -49,7 +47,7 @@ class JobParserDB():
 
     # TODO переделать
     @staticmethod
-    def _calc_salary(salary, level):
+    def _calc_salary(salary: str, level: str):
         try:
             low, max = salary.replace(' ', '').strip('руб.').split('-')
         except ValueError:
@@ -64,7 +62,7 @@ class JobParserDB():
             return int(max)
 
     def _is_exist_job(self, table, job):
-        find_job_query = f'SELECT close_date FROM {table} WHERE name == "{job}";'
+        find_job_query = f'SELECT close_date FROM {table} WHERE name="{job}";'
 
         cursor = self.db.cursor()
         cursor.execute(find_job_query)
@@ -113,12 +111,13 @@ class JobParserDB():
         for job in new_jobs:
             if self._is_exist_job(self.table, job) is False:
 
-                query = base_query.format(table=self.table, name=job,
-                                    salary_low=self._calc_salary(parsed_data[job], "low"),
-                                    salary_max=self._calc_salary(parsed_data[job], "max"),
-                                    create_date=int(time()),
-                                    close_date="null"
-                                        )
+                query = base_query.format(table=self.table,
+                                          name=job,
+                                          salary_low=self._calc_salary(parsed_data[job], "low"),
+                                          salary_max=self._calc_salary(parsed_data[job], "max"),
+                                          create_date=int(time()),
+                                          close_date="null"
+                                          )
 
                 cursor.execute(query)
 
@@ -135,8 +134,8 @@ class JobParserDB():
 
         for job in removed_jobs:
             query = base_query.format(table=self.table, name=job,
-                                close_date=int(time())
-                                )
+                                      close_date=int(time())
+                                      )
 
             cursor.execute(query)
             self.db.commit()
