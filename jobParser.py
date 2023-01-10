@@ -62,10 +62,9 @@ class JobParserDB():
             return int(max)
 
     def _is_exist_job(self, table, job):
-        find_job_query = f'SELECT close_date FROM {table} WHERE name="{job}";'
-
+        query = f'SELECT close_date FROM {table} WHERE name="{job}";'
         cursor = self.db.cursor()
-        cursor.execute(find_job_query)
+        cursor.execute(query)
         res = cursor.fetchall()
         cursor.close()
 
@@ -101,7 +100,7 @@ class JobParserDB():
         return res
 
     def _db_create_jobs(self, new_jobs: list, parsed_data: dict):
-        base_query = """
+        query = """
             INSERT INTO {table} (name, salary_low, salary_max, create_date, close_date)
             VALUES ("{name}", {salary_low}, {salary_max}, {create_date}, {close_date});
         """
@@ -111,13 +110,13 @@ class JobParserDB():
         for job in new_jobs:
             if self._is_exist_job(self.table, job) is False:
 
-                query = base_query.format(table=self.table,
-                                          name=job,
-                                          salary_low=self._calc_salary(parsed_data[job], "low"),
-                                          salary_max=self._calc_salary(parsed_data[job], "max"),
-                                          create_date=int(time()),
-                                          close_date="null"
-                                          )
+                query = query.format(table=self.table,
+                                     name=job,
+                                     salary_low=self._calc_salary(parsed_data[job], "low"),
+                                     salary_max=self._calc_salary(parsed_data[job], "max"),
+                                     create_date=int(time()),
+                                     close_date="null"
+                                     )
 
                 cursor.execute(query)
 
@@ -125,7 +124,7 @@ class JobParserDB():
             cursor.close()
 
     def _db_close_jobs(self, removed_jobs: set):
-        base_query = """
+        query = """
             UPDATE {table}
             SET close_date = {close_date}
             WHERE name == "{name}" AND close_date IS NULL;
@@ -133,9 +132,10 @@ class JobParserDB():
         cursor = self.db.cursor()
 
         for job in removed_jobs:
-            query = base_query.format(table=self.table, name=job,
-                                      close_date=int(time())
-                                      )
+            query = query.format(table=self.table,
+                                 name=job,
+                                 close_date=int(time())
+                                 )
 
             cursor.execute(query)
             self.db.commit()
