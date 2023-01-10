@@ -23,7 +23,10 @@ class JobParserDB():
 
     @property
     def _table_exist(self):
-        query = f"SELECT name FROM sqlite_master WHERE type='table' AND name='{self.table}';"
+        query = f"""
+        SELECT name FROM sqlite_master
+        WHERE type='table' AND name='{self.table}';
+        """
         cursor = self.db.cursor()
         cursor.execute(query)
         res = cursor.fetchone()
@@ -33,14 +36,14 @@ class JobParserDB():
 
     def _create_table(self):
         table_create_query = f"""
-        CREATE TABLE {self.table} (
-                            id INTEGER PRIMARY KEY,
-                            name TEXT NOT NULL,
-                            salary_max REAL NOT NULL,
-                            salary_low REAL NOT NULL,
-                            create_date TIMESTAMP,
-                            close_date INTEGER);
-            """
+            CREATE TABLE {self.table}
+                                    (id INTEGER PRIMARY KEY,
+                                    name TEXT NOT NULL,
+                                    salary_max REAL NOT NULL,
+                                    salary_low REAL NOT NULL,
+                                    create_date TIMESTAMP,
+                                    close_date INTEGER);
+        """
         cursor = self.db.cursor()
         cursor.execute(table_create_query)
         cursor.close()
@@ -101,8 +104,10 @@ class JobParserDB():
 
     def _db_create_jobs(self, new_jobs: list, parsed_data: dict):
         query = """
-            INSERT INTO {table} (name, salary_low, salary_max, create_date, close_date)
-            VALUES ("{name}", {salary_low}, {salary_max}, {create_date}, {close_date});
+            INSERT INTO {table}
+            (name, salary_low, salary_max, create_date, close_date)
+            VALUES
+            ("{name}", {salary_low}, {salary_max}, {create_date}, {close_date});
         """
 
         cursor = self.db.cursor()
