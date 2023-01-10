@@ -147,13 +147,13 @@ class JobParserDB():
             self.db.commit()
             cursor.close()
 
-    def db_get_all_active_job(self):
+    def db_get_all_active_jobs(self):
         query = f"""
             SELECT id, name, create_date FROM {self.table}
             WHERE close_date IS NULL;"""
         return self._db_fetchall(query)
 
-    def db_get_all_closed_job(self):
+    def db_get_all_closed_jobs(self):
         query = f"""
             SELECT id, name, create_date, close_date FROM {self.table}
             WHERE close_date IS NOT NULL;"""
@@ -246,7 +246,7 @@ class JobParser(JobParserDB, customlog.LoggerFile):
             msg = str(salary[0])+' тыс.руб.'
         return msg
 
-    def day_pass(self, start_time: int):
+    def days_pass(self, start_time: int):
         time_now = datetime.fromtimestamp(time())
         time_created = datetime.fromtimestamp(start_time)
         return (time_now - time_created).days
@@ -261,15 +261,8 @@ class JobParser(JobParserDB, customlog.LoggerFile):
             txt = f'{name}\n<i>{self.conv_salary(salary)}</i>'
         return txt + '\n' + '-'*45
 
-    def get_active_jobs(self) -> tuple:
-        for id, name, create_time in self.db_get_all_active_job():
-            salary = self.db_get_salary_by_id(id)
-
-            yield id, self.fmt(name=name,
-                               state=None if self.days_pass(create_time) else "+",
-                               salary=salary)
-
-        for id, name, _, closed_time in self.db_get_all_closed_job():
+    def get_jobs(self) -> tuple:
+        for id, name, _, closed_time in self.db_get_all_closed_jobs():
             if not self.days_pass(closed_time):
                 salary = self.db_get_salary_by_id(id)
 
@@ -277,21 +270,12 @@ class JobParser(JobParserDB, customlog.LoggerFile):
                                    state="-",
                                    salary=salary)
 
-        # #  Added==========================================================
-        # if self.sorted_data['added']:
-        #     self.logger.info("Added " + str(self.sorted_data['added']))
-        #     for item in self.sorted_data['added']:
-        #         yield item, config.NEW, self.fmt(name=item, state='+', salary=self.raw_data[item])
-        # #  Current=========================================================
-        # dif = self.sorted_data['jobs'] - (self.sorted_data['added'] | self.sorted_data['removed'])
-        # if dif:
-        #     for item in dif:
-        #         yield item, config.CUR, self.fmt(name=item, state='', salary=self.raw_data[item])
-        # #  Removed=========================================================
-        # if self.sorted_data['removed']:
-        #     self.logger.info("Removed " + str(self.sorted_data['removed']))
-        #     for item in self.sorted_data['removed']:
-        #         yield item, config.OLD, self.fmt(name=item, state='-')
+        for id, name, create_time in self.db_get_all_active_jobs():
+            salary = self.db_get_salary_by_id(id)
+
+            yield id, self.fmt(name=name,
+                               state=None if self.days_pass(create_time) else "+",
+                               salary=salary)
 
     def update(self, filter: list) -> bool:
         try:

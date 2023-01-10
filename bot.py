@@ -118,7 +118,7 @@ def updater(parsers: list):
             cnt = 0
             button_list = list()
 
-            for id, fmt_job in parser.get_active_jobs():
+            for id, fmt_job in parser.get_jobs():
                 cnt += 1
                 msg += f"{cnt}. {fmt_job}\n"
                 button = types.InlineKeyboardButton(
