@@ -5,6 +5,7 @@ import re
 import requests
 import sqlite3
 
+from datetime import datetime
 from time import time
 from bs4 import BeautifulSoup as bs
 
@@ -147,11 +148,15 @@ class JobParserDB():
             cursor.close()
 
     def db_get_all_active_job(self):
-        query = f"SELECT id, name, create_date FROM {self.table} WHERE close_date IS NULL;"
+        query = f"""
+            SELECT id, name, create_date FROM {self.table}
+            WHERE close_date IS NULL;"""
         return self._db_fetchall(query)
 
     def db_get_all_closed_job(self):
-        query = f"SELECT id, name, create_date, close_date FROM {self.table} WHERE close_date IS NOT NULL;"
+        query = f"""
+            SELECT id, name, create_date, close_date FROM {self.table}
+            WHERE close_date IS NOT NULL;"""
         return self._db_fetchall(query)
 
     def db_get_all_job(self):
@@ -241,6 +246,11 @@ class JobParser(JobParserDB, customlog.LoggerFile):
             msg = str(salary[0])+' тыс.руб.'
         return msg
 
+    def day_pass(self, start_time: int):
+        time_now = datetime.fromtimestamp(time())
+        time_created = datetime.fromtimestamp(start_time)
+        return (time_now - time_created).days
+
     def fmt(self, name, state, salary=None) -> str:
         txt = ''
         if state == '+':
@@ -251,10 +261,21 @@ class JobParser(JobParserDB, customlog.LoggerFile):
             txt = f'{name}\n<i>{self.conv_salary(salary)}</i>'
         return txt + '\n' + '-'*45
 
-    def get_fmt_jobs(self) -> str:
-        for id, name, _ in self.db_get_all_active_job():
+    def get_active_jobs(self) -> tuple:
+        for id, name, create_time in self.db_get_all_active_job():
             salary = self.db_get_salary_by_id(id)
-            yield id, self.fmt(name=name, state=None, salary=salary)
+
+            yield id, self.fmt(name=name,
+                               state=None if self.days_pass(create_time) else "+",
+                               salary=salary)
+
+        for id, name, _, closed_time in self.db_get_all_closed_job():
+            if not self.days_pass(closed_time):
+                salary = self.db_get_salary_by_id(id)
+
+                yield id, self.fmt(name=name,
+                                   state="-",
+                                   salary=salary)
 
         # #  Added==========================================================
         # if self.sorted_data['added']:
