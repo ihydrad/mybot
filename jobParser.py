@@ -208,17 +208,14 @@ class JobParser(JobParserDB, customlog.LoggerFile):
         return data
 
     @staticmethod
-    def check_item_in_filter(item, filter_list) -> bool:
-        return bool(
-            any(
-                [filter_item.lower() in item.lower()
-                    for filter_item in filter_list]
-                )
-            )
+    def check_item_in_filter(item: str, filter_list: list) -> bool:
+        return bool(any([filter_item.lower() in item.lower()
+                         for filter_item in filter_list]))
 
     def get_cleared(self, listData: list) -> list:
         if not self.filter_list:
             return listData
+
         return [item for item in listData
                 if self.check_item_in_filter(item, self.filter_list)]
 
@@ -228,6 +225,7 @@ class JobParser(JobParserDB, customlog.LoggerFile):
         sorted_data['removed'] = self.jobs_list - sorted_data['jobs']
         sorted_data['added'] = sorted_data['jobs'] - self.jobs_list
         self.jobs_list = sorted_data['jobs'].copy()
+
         if not (sorted_data['jobs'] | sorted_data['removed']):
             return 0
         return sorted_data
@@ -281,13 +279,16 @@ class JobParser(JobParserDB, customlog.LoggerFile):
         except Exception as e:
             self.logger.debug(str(e))
             return False
-        self.filter_list = filter
-        sorted_data = self.prep_data()
-        if not sorted_data:
-            return False
-        if (sorted_data['added'] | sorted_data['removed']):
-            self.db_update(sorted_data, self.raw_data)
-            return True
+        else:
+            self.filter_list = filter
+            data = self.prep_data()
+
+            if not data:
+                return False
+
+            if (data['added'] | data['removed']):
+                self.db_update(data, self.raw_data)
+                return True
 
     def __repr__(self):
         return self.name
