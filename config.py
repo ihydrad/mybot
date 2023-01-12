@@ -8,13 +8,13 @@ NEW = 2
 CUR = 1
 OLD = 0
 
+host = '192.168.88.8'
 work_dir = os.path.dirname(__file__)
 token = os.getenv("API_TOKEN")
 DEBUG = os.getenv("DEBUG_BOT")
 period = 30 if not DEBUG else 1  # period minutes for site parse
 delay = 10
 zMAC = '00:01:2E:A2:09:2B'
-host = '192.168.0.6'
 users = [285917182,]
 job_add_threshold = 10000 #  ~ 3 hours
 keysIT = ["системный", "сетев", "it", "программист", "разработчик"]
