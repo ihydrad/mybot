@@ -1,8 +1,9 @@
 import pandas as pd
 import io
+import matplotlib.pyplot as plt
+import numpy as np
 
 from jobParser import JobParserDB
-import matplotlib.pyplot as plt
 
 
 def job_to_str(data):
@@ -14,8 +15,9 @@ def job_to_str(data):
         except ValueError:
             _, name, start = item
             txt += f"{name},{start},None\n"
-    
+
     return txt
+
 
 def build_hist_year():
     db = JobParserDB("ufa")
@@ -29,19 +31,24 @@ def build_hist_year():
     df['Start'] = df['Start'].astype('datetime64[s]')
     df.sort_values(by="Start", inplace=True)
 
-    plt.hist(df['Start'].dt.month, range=[1, 13])
+    cur_year_df = df[(df['Start'].dt.year == 2023)]
+    plt.hist(cur_year_df['Start'].dt.month)
 
     buf = io.BytesIO()
+    plt.grid()
+    #plt.axis([0, 13, 0, 10])
+    plt.xlabel("Месяц")
+    plt.xticks(np.arange(1, 13, 1))
+    plt.ylabel("Количество вакансий")
+    plt.yticks(np.arange(0, 11, 1))
     plt.savefig(buf, format='png')
     buf.seek(0)
 
     return buf
+
 
 if __name__ == "__main__":
     img = build_hist_year()
 
     with open("test.png", "wb") as f:
         f.write(img.getbuffer())
-    
-
-
