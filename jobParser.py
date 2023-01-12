@@ -11,10 +11,6 @@ from time import time
 from bs4 import BeautifulSoup as bs
 
 
-log = logging.getLogger("JobParser")
-log.setLevel(logging.DEBUG)
-
-
 class JobParserDB():
     def __init__(self, table_name: str, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
