@@ -292,10 +292,10 @@ class JobParser(JobParserDB, customlog.LoggerFile):
 
     def update(self, filter: list) -> bool:
         try:
-            self.logger.debug("Cheking...")
+            self.logger.info("Cheking...")
             self.raw_data = self.get_from_web()
         except Exception as e:
-            self.logger.debug(str(e))
+            self.logger.warning(str(e))
             return False
         else:
             self.filter_list = filter
