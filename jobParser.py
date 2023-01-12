@@ -254,12 +254,12 @@ class JobParser(JobParserDB, customlog.LoggerFile):
     def fmt(self, name, state, salary=None) -> str:
         txt = ''
         if state == '+':
-            txt = f'<b>{name}</b>\n<i>{self.conv_salary(salary)}</i>'
+            txt = f'<b>{name}</b>'
         elif state == '-':
             txt = f'<s>{name}</s>'
         else:
-            txt = f'{name}\n<i>{self.conv_salary(salary)}</i>'
-        return txt + '\n' + '-'*45
+            txt = f'{name}'
+        return txt + f"\n<i>{self.conv_salary(salary)}</i>" + '\n' + '-'*45
 
     def get_jobs(self) -> tuple:
         for id, name, _, closed_time in self.db_get_all_closed_jobs():
