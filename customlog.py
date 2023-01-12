@@ -12,7 +12,7 @@ formatter = logging.Formatter(
 
 class LoggerConsole:
     def __init__(self, name) -> None:
-        self.logger = logging.getLogger(name)
+        self.logger = logging.getLogger(name.lower())
         self.logger.setLevel(lev)
         consoleHandler = logging.StreamHandler()
         consoleHandler.setLevel(lev)
@@ -23,9 +23,9 @@ class LoggerConsole:
 
 class LoggerFile:
     def __init__(self, name) -> None:
-        self.logger = logging.getLogger(name)
+        self.logger = logging.getLogger(name.lower())
         self.logger.setLevel(lev)
-        log_file = os.path.join(config.work_dir, "logs", name + '.log')
+        log_file = os.path.join(config.work_dir, "logs", name.lower() + '.log')
         log_folder = os.path.join(config.work_dir, "logs")
         if not exists(log_folder):
             os.mkdir(log_folder)

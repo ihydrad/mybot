@@ -1,5 +1,6 @@
 import config
 import customlog
+import logging
 import os
 import re
 import requests
@@ -8,6 +9,10 @@ import sqlite3
 from datetime import datetime
 from time import time
 from bs4 import BeautifulSoup as bs
+
+
+log = logging.getLogger("JobParser")
+log.setLevel(logging.DEBUG)
 
 
 class JobParserDB():
@@ -182,10 +187,10 @@ class JobParserDB():
 class JobParser(JobParserDB, customlog.LoggerFile):
     url = "https://vkomandu.ufanet.ru/vacancy/"
 
-    def __init__(self, city, *args, **kwargs):
+    def __init__(self, city: str, *args, **kwargs):
         super().__init__(*args, table_name=city, name=city, **kwargs)
-        self.city = city
-        self.name = config.cityes.get(city, None)
+        self.city = city.lower()
+        self.name = config.cityes[self.city]
         self.__filter = None
         self.jobs_list = set()
 
@@ -201,15 +206,22 @@ class JobParser(JobParserDB, customlog.LoggerFile):
             raise Exception("Value must be type of list")
 
     def get_from_web(self) -> dict:
-        data = dict()
-        html = requests.get(JobParser.url + self.city).text
-        soup = bs(html, 'html.parser')
+        res = requests.get(JobParser.url + self.city)
+
+        soup = bs(res.text, 'html.parser')
+
         maindiv = soup.find("div", {"class": "main__list-vacancies vacancies"})
         vac = maindiv.find_all("div", {"class": "vacancy__item__wrap vacancy"})
+
+        data = dict()
         for item in vac:
-            title = item.find("div", {"class": "vacancy__title"}).getText().strip()
-            salary = item.find("div", {"class": "vacancy__salary"}).getText().strip()
-            data[title] = salary
+            item: bs
+            title: str = item.find("div",
+                                   {"class": "vacancy__title"}).getText()
+            salary: str = item.find("div",
+                                    {"class": "vacancy__salary"}).getText()
+            data[title.strip()] = salary.strip()
+
         return data
 
     @staticmethod
@@ -260,7 +272,7 @@ class JobParser(JobParserDB, customlog.LoggerFile):
         else:
             txt = f'{name}'
 
-        return txt + f"\n<i>{self.conv_salary(salary)}</i>" + '\n' + '-'*45
+        return txt + f"\n<i>{self.conv_salary(salary)}</i>\n{'-'*45}"
 
     def get_jobs(self) -> tuple:
         for id, name, _, closed_time in self.db_get_all_closed_jobs():

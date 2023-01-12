@@ -1,5 +1,6 @@
 #!/home/adr/miniconda3/envs/botenv/bin/python3.10
 import config
+import logging
 import requests
 import schedule
 import telebot
@@ -15,6 +16,7 @@ from graph import build_hist_year
 
 
 bot = telebot.TeleBot(config.token)
+logging.basicConfig(level=logging.DEBUG if config.DEBUG else logging.INFO)
 
 
 class IsAdmin(telebot.custom_filters.SimpleCustomFilter):
@@ -139,7 +141,7 @@ def shedule_ping():
 
 
 def botScheduler():
-    parsers = [JobParser(city) for city in ["ufa", "Sterlitamak"]]
+    parsers = [JobParser(city) for city in ["Ufa", "Sterlitamak"]]
 
     schedule.every(config.period).minutes.do(updater, parsers)
     schedule.every(config.period).minutes.do(shedule_ping)

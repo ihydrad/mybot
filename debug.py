@@ -1,8 +1,9 @@
-from jobParser import JobParser, JobParserDB
+from jobParser import JobParser
 
 
-test_db = JobParserDB(table_name="sterlitamak")
+str = JobParser("sterlitamak")
 
-j = test_db.db_get_all_active_jobs()
+data = str.get_from_web()
 
-print(j)
+print(data)
+
