@@ -259,6 +259,7 @@ class JobParser(JobParserDB, customlog.LoggerFile):
             txt = f'<s>{name}</s>'
         else:
             txt = f'{name}'
+
         return txt + f"\n<i>{self.conv_salary(salary)}</i>" + '\n' + '-'*45
 
     def get_jobs(self) -> tuple:
