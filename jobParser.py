@@ -295,7 +295,7 @@ class JobParser(JobParserDB, customlog.LoggerFile):
             self.logger.info("Cheking...")
             self.raw_data = self.get_from_web()
         except Exception as e:
-            self.logger.warning(str(e))
+            self.logger.error(str(e))
             return False
         else:
             self.filter_list = filter
