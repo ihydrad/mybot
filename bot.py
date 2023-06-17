@@ -1,4 +1,3 @@
-#!/home/adr/miniconda3/envs/botenv/bin/python3.10
 import config
 import logging
 import requests
@@ -35,7 +34,7 @@ def handle_help(message):
     markup = types.ReplyKeyboardMarkup()
 
     itembtn1 = types.KeyboardButton('wakeup')
-    itembtn2 = types.KeyboardButton('shutdown')
+    itembtn2 = types.KeyboardButton('open')
     itembtn3 = types.KeyboardButton('hibernate')
     itembtn4 = types.KeyboardButton('status')
 
@@ -55,11 +54,15 @@ def botfunc(message) -> str:
     if message.text.lower() == 'status':
         try:
             requests.get("http://{}:8585/".format(config.host))
-            staet_msg = "PC is online!"
+            state_msg = "PC is online!"
         except:
-            staet_msg = "PC is offline"
+            state_msg = "PC is offline"
 
-        return bot.send_message(config.users[0], staet_msg)
+        return bot.send_message(config.users[0], state_msg)
+
+    if message.text.lower() == 'open':
+        res = open_door(config.ufanet_username, config.ufanet_password)
+        return bot.send_message(config.users[0], res)
 
     if message.text.lower() == 'jobs':
         graph = build_hist_year()
@@ -79,6 +82,26 @@ def botfunc(message) -> str:
 @bot.message_handler(commands=['help', 'start'])
 def handle_help(message):
     bot.reply_to(message, "У вас нет прав для работы с этим ботом или его разделом.")
+
+
+def open_door(login: str, password: str):
+    url = "https://dom.ufanet.ru/api/v0/skud/shared/41967/open/"
+    # "http://dom.ufanet.ru/api/v0/skud/shared/41967/open/"
+    url_login = "https://dom.ufanet.ru/login/"
+
+    headers = {
+    "Accept": "*/*",
+    "User-Agent": "Thunder Client (https://www.thunderclient.com)",
+    "Content-Type": "multipart/form-data; boundary=kljmyvW1ndjXaOEAg4vPm6RBUqO6MC5A" 
+    }
+
+    payload = "--kljmyvW1ndjXaOEAg4vPm6RBUqO6MC5A\r\nContent-Disposition: form-data; "
+    payload += f"name=\"contract\"\r\n\r\n{login}\r\n--kljmyvW1ndjXaOEAg4vPm6RBUqO6MC5A\r\n"
+    payload += f"Content-Disposition: form-data; name=\"password\"\r\n\r\n{password}\r\n--kljmyvW1ndjXaOEAg4vPm6RBUqO6MC5A--\r\n"
+
+    with requests.Session() as s:
+        s.post(url_login, data=payload,  headers=headers)
+        return s.get(url).reason
 
 
 def fill_profile(job_name):

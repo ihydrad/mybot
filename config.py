@@ -11,6 +11,8 @@ OLD = 0
 host = '192.168.88.8'
 work_dir = os.path.dirname(__file__)
 token = os.getenv("API_TOKEN")
+ufanet_username = os.getenv("UNAME")
+ufanet_password = os.getenv("UPASS")
 DEBUG = True if os.getenv("DEBUG") == "True" else False
 period = 30 if not DEBUG else 1  # period minutes for site parse
 delay = 10
