@@ -1,4 +1,4 @@
-import config
+import api.config as config
 import customlog
 import logging
 import os

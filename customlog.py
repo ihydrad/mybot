@@ -2,7 +2,7 @@ import os
 import logging
 import logging.handlers
 from os.path import exists
-import config
+import api.config as config
 
 
 formatter = logging.Formatter(

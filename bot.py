@@ -1,4 +1,4 @@
-import config
+import api.config as config
 import logging
 import requests
 import schedule
@@ -12,6 +12,7 @@ from telebot import types
 from jobParser import JobParser, JobParserDB
 from wakeonlan import send_magic_packet
 from graph import build_hist_year
+from api.tools import open_door
 
 
 bot = telebot.TeleBot(config.token)
@@ -82,26 +83,6 @@ def botfunc(message) -> str:
 @bot.message_handler(commands=['help', 'start'])
 def handle_help(message):
     bot.reply_to(message, "У вас нет прав для работы с этим ботом или его разделом.")
-
-
-def open_door(login: str, password: str):
-    url = "https://dom.ufanet.ru/api/v0/skud/shared/41967/open/"
-    # "http://dom.ufanet.ru/api/v0/skud/shared/41967/open/"
-    url_login = "https://dom.ufanet.ru/login/"
-
-    headers = {
-    "Accept": "*/*",
-    "User-Agent": "Thunder Client (https://www.thunderclient.com)",
-    "Content-Type": "multipart/form-data; boundary=kljmyvW1ndjXaOEAg4vPm6RBUqO6MC5A" 
-    }
-
-    payload = "--kljmyvW1ndjXaOEAg4vPm6RBUqO6MC5A\r\nContent-Disposition: form-data; "
-    payload += f"name=\"contract\"\r\n\r\n{login}\r\n--kljmyvW1ndjXaOEAg4vPm6RBUqO6MC5A\r\n"
-    payload += f"Content-Disposition: form-data; name=\"password\"\r\n\r\n{password}\r\n--kljmyvW1ndjXaOEAg4vPm6RBUqO6MC5A--\r\n"
-
-    with requests.Session() as s:
-        s.post(url_login, data=payload,  headers=headers)
-        return s.get(url).reason
 
 
 def fill_profile(job_name):
