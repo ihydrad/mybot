@@ -1,9 +1,5 @@
-from jobParser import JobParser
+from api.tools import get_my_doors, open_door
 
 
-str = JobParser("sterlitamak")
-
-data = str.get_from_web()
-
-print(data)
-
+print(get_my_doors())
+print(open_door(45548))

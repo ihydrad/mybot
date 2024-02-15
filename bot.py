@@ -12,7 +12,7 @@ from telebot import types
 from jobParser import JobParser, JobParserDB
 from wakeonlan import send_magic_packet
 from graph import build_hist_year
-from api.tools import open_door
+from api.tools import open_door, get_my_doors
 
 
 bot = telebot.TeleBot(config.token)
@@ -29,6 +29,7 @@ class IsAdmin(telebot.custom_filters.SimpleCustomFilter):
 
 bot.add_custom_filter(IsAdmin())
 
+
 @bot.message_handler(is_admin=True, commands=['help', 'start'])
 def handle_help(message):
 
@@ -43,6 +44,28 @@ def handle_help(message):
     markup.row(itembtn2, itembtn3)
 
     bot.reply_to(message, "r2d2 is online!", reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_query(call):
+    msg = "Дверь не открылась"
+    try:
+        rv = open_door(call.data)
+        if rv.get("result") is True:
+            msg = "Дверь открыта"
+    except:
+        msg = "Ошибка"
+    bot.answer_callback_query(call.id, msg)
+    # city, id = call.data.split(":")
+
+    # db = JobParserDB(city)
+    # job_name = db.db_get_name_by_id(id)[0]
+
+    # bot.answer_callback_query(call.id,
+    #                           f'Отправляем анкету:"{job_name}"')
+
+    # t_profile = threading.Thread(target=fill_profile, args=(job_name,))
+    # t_profile.start()
 
 
 @bot.message_handler(is_admin=True, func=lambda message: True)
@@ -62,8 +85,16 @@ def botfunc(message) -> str:
         return bot.send_message(config.users[0], state_msg)
 
     if message.text.lower() == 'open':
-        res = open_door(config.ufanet_username, config.ufanet_password)
-        return bot.send_message(config.users[0], res)
+        markup = types.InlineKeyboardMarkup()
+        button_list = list()
+        msg = ""
+        for cnt, door in enumerate(get_my_doors(), start=1):
+            button = types.InlineKeyboardButton(str(cnt), callback_data=door['id'])
+            button_list.append(button)
+            msg += f"{cnt}. {door['string_view']}: {door['role']['name']}\n"
+        markup.row(*button_list)
+        return bot.send_message(config.users[0], f"Доступные двери:\n{msg}",
+                                reply_markup=markup, parse_mode="HTML")
 
     if message.text.lower() == 'jobs':
         graph = build_hist_year()
@@ -97,21 +128,6 @@ def fill_profile(job_name):
 
     shedule_log.logger.debug(res_msg)
     bot.send_message(config.users[0], res_msg)
-
-
-@bot.callback_query_handler(func=lambda call: True)
-def callback_query(call):
-
-    city, id = call.data.split(":")
-
-    db = JobParserDB(city)
-    job_name = db.db_get_name_by_id(id)[0]
-
-    bot.answer_callback_query(call.id,
-                              f'Отправляем анкету:"{job_name}"')
-
-    t_profile = threading.Thread(target=fill_profile, args=(job_name,))
-    t_profile.start()
 
 
 def updater(parsers: list):

@@ -1,5 +1,5 @@
 import uvicorn
-import config, tools
+from api.tools import open_door
 
 from fastapi import FastAPI
 
@@ -15,7 +15,7 @@ async def root():
 
 @app.get("/open_door")
 async def door():
-    tools.open_door(config.ufanet_username, config.ufanet_password)
+    return open_door(56763)
 
 
 if __name__ == "__main__":
